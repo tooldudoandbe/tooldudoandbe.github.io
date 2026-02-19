@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧧 TOOL DỰ ĐOÁN MD5 DBE 🧧</title>
+    <style>
+        body { margin: 0; background: #1a0000; font-family: 'Segoe UI', Arial; color: #FFD700; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #fireworks { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        
+        .container { background: rgba(100, 0, 0, 0.95); padding: 30px; border-radius: 25px; border: 3px solid #FFD700; text-align: center; z-index: 10; width: 90%; max-width: 380px; box-shadow: 0 0 50px rgba(255, 0, 0, 0.5); display: none; }
+        
+        h1 { font-size: 22px; margin: 0 0 10px 0; text-shadow: 2px 2px #5a0000; }
+        .sub-text { color: #fff; font-size: 11px; margin-bottom: 20px; opacity: 0.7; }
+
+        input { width: 100%; padding: 14px; border-radius: 10px; border: 2px solid #FFD700; font-size: 14px; text-align: center; margin-bottom: 15px; box-sizing: border-box; background: #fff; color: #000; font-weight: bold; }
+        
+        button { background: linear-gradient(145deg, #FFD700, #ffae00); color: #B40000; border: none; padding: 15px; font-weight: 900; border-radius: 10px; cursor: pointer; width: 100%; font-size: 16px; box-shadow: 0 5px #9c7a00; transition: 0.2s; margin-bottom: 10px; }
+        button:active { transform: translateY(3px); box-shadow: 0 2px #9c7a00; }
+
+        .link-text { color: #fff; font-size: 12px; cursor: pointer; text-decoration: underline; }
+        .result-box { margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.7); border-radius: 20px; border: 2px solid #FFD700; }
+        #finalResult { font-size: 50px; font-weight: 900; margin: 10px 0; letter-spacing: 5px; }
+        .error { color: #ff3333; font-size: 12px; margin-bottom: 10px; display: none; }
+        .admin-badge { background: gold; color: red; font-size: 10px; padding: 2px 5px; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks"></canvas>
+
+    <div id="loginBox" class="container" style="display: block;">
+        <h1>🧧 ĐĂNG NHẬP 🧧</h1>
+        <p class="sub-text">Hệ thống phân tích MD5 chuyên nghiệp</p>
+        <input type="text" id="loginUser" placeholder="TÊN ĐĂNG NHẬP">
+        <input type="password" id="loginPass" placeholder="MẬT KHẨU">
+        <div id="loginError" class="error">Sai tài khoản hoặc mật khẩu!</div>
+        <button onclick="handleLogin()">ĐĂNG NHẬP</button>
+        <p class="link-text" onclick="showForm('registerBox')">Chưa có tài khoản? Đăng ký</p>
+    </div>
+
+    <div id="registerBox" class="container">
+        <h1>🧧 ĐĂNG KÝ 🧧</h1>
+        <p class="sub-text">Tạo tài khoản thành viên mới</p>
+        <input type="text" id="regUser" placeholder="TÊN ĐĂNG NHẬP">
+        <input type="password" id="regPass" placeholder="MẬT KHẨU">
+        <button onclick="handleRegister()">TẠO TÀI KHOẢN</button>
+        <p class="link-text" onclick="showForm('loginBox')">Quay lại Đăng nhập</p>
+    </div>
+
+    <div id="keyBox" class="container">
+        <h1>🧧 KÍCH HOẠT KEY 🧧</h1>
+        <p class="sub-text">Chào mừng <span id="welcomeUser"></span></p>
+        <input type="text" id="keyInput" placeholder="NHẬP KEY VIP">
+        <div id="keyError" class="error">Mã Key không chính xác!</div>
+        <button onclick="handleCheckKey()">MỞ KHÓA HỆ THỐNG</button>
+    </div>
+
+    <div id="toolBox" class="container">
+        <h1>🧧 TOOL DỰ ĐOÁN MD5 DBE <span </span> 🧧</h1>
+        <p class="sub-text">TELEGRAM : CSKHDBEZZ </p>
+        <input type="text" id="hashInput" placeholder="DÁN MÃ MD5 PHIÊN">
+        <button onclick="analyzeMD5()">🧨 PHÂN TÍCH KẾT QUẢ 🧨</button>
+        <div class="result-box">
+            <div id="percentLabel" style="color: #00FF00; font-weight: bold;">TỈ LỆ THẮNG: --%</div>
+            <div id="finalResult">---</div>
+        </div>
+    </div>
+
+    <script>
+        // CẤU HÌNH ADMIN VÀ KEY
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "123456";
+        const SECRET_KEY = "ANHLADBE";
+        
+        let usedHashes = new Set();
+
+        function showForm(id) {
+            document.querySelectorAll('.container').forEach(f => f.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function handleRegister() {
+            const user = document.getElementById('regUser').value.trim().toLowerCase();
+            const pass = document.getElementById('regPass').value.trim();
+            if(!user || !pass) { alert("Không được để trống!"); return; }
+            if(user === ADMIN_USER) { alert("Tên đăng nhập đã tồn tại!"); return; }
+            
+            localStorage.setItem("user_" + user, pass);
+            alert("Đăng ký thành công!");
+            showForm('loginBox');
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('loginUser').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPass').value.trim();
+            const error = document.getElementById('loginError');
+
+            // Kiểm tra Acc Admin cứng
+            if(user === ADMIN_USER && pass === ADMIN_PASS) {
+                document.getElementById('welcomeUser').innerText = "Admin";
+                showForm('keyBox');
+                return;
+            }
+
+            // Kiểm tra Acc người dùng trong LocalStorage
+            const savedPass = localStorage.getItem("user_" + user);
+            if(savedPass && savedPass === pass) {
+                document.getElementById('welcomeUser').innerText = user;
+                showForm('keyBox');
+            } else {
+                error.style.display = 'block';
+                setTimeout(() => error.style.display = 'none', 2000);
+            }
+        }
+
+        function handleCheckKey() {
+            const key = document.getElementById('keyInput').value.trim();
+            if(key === SECRET_KEY) {
+                showForm('toolBox');
+                startFireworks();
+            } else {
+                document.getElementById('keyError').style.display = 'block';
+            }
+        }
+
+        function analyzeMD5() {
+            const hash = document.getElementById('hashInput').value.trim().toLowerCase();
+            if (hash.length < 10) { alert("Nhập mã MD5 hợp lệ!"); return; }
+            if (usedHashes.has(hash)) { alert("Mã này đã soi 1 lần rồi!"); return; }
+            usedHashes.add(hash);
+
+            let charCodeSum = 0;
+            [2, 6, 10, 14].forEach(pos => { if (hash[pos]) charCodeSum += hash.charCodeAt(pos); });
+
+            const score = (charCodeSum % 16) + 3;
+            const result = score >= 11 ? "TÀI" : "XỈU";
+            const winRate = 55 + (parseInt(hash.slice(-1), 16) % 33);
+
+            document.getElementById('percentLabel').innerText = "TỈ LỆ THẮNG: " + winRate + "%";
+            document.getElementById('finalResult').innerText = result;
+            document.getElementById('finalResult').style.color = result === "TÀI" ? "#FFD700" : "#FFFFFF";
+            startFireworks();
+        }
+
+        // --- HỆ THỐNG PHÁO HOA ---
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+        function createFirework(x, y) {
+            const colors = ['#FFD700', '#FF4444', '#00FF00', '#FFFFFF'];
+            for(let i=0; i<30; i++) {
+                particles.push({ x, y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 1, color: colors[Math.floor(Math.random()*4)] });
+            }
+        }
+        function startFireworks() {
+            for(let i=0; i<5; i++) setTimeout(() => createFirework(Math.random()*canvas.width, Math.random()*canvas.height*0.5), i*200);
+        }
+        function animate() {
+            ctx.fillStyle = 'rgba(26,0,0,0.2)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+            particles.forEach((p,i) => {
+                p.x+=p.vx; p.y+=p.vy; p.vy+=0.07; p.life-=0.015;
+                ctx.globalAlpha=p.life; ctx.fillStyle=p.color;
+                ctx.beginPath(); ctx.arc(p.x,p.y,2.5,0,Math.PI*2); ctx.fill();
+                if(p.life<=0) particles.splice(i,1);
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
